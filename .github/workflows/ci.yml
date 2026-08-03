@@ -1,0 +1,49 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - master
+      - 'feature/**'
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Normalize changed feature formatting
+        run: |
+          dart format \
+            lib/services/bulk_import_service.dart \
+            lib/github_store/github_repository_import_service.dart \
+            lib/widgets/github_repository_import_dialog.dart \
+            test/services/bulk_import_service_test.dart \
+            tool/build_ir_master_index.dart
+
+      - name: Analyze against existing project baseline
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build debug APK
+        run: flutter build apk --debug
