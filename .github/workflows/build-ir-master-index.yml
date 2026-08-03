@@ -10,6 +10,7 @@ on:
     paths:
       - 'tool/build_ir_master_index.dart'
       - 'tool/ir_master_index_sources.json'
+      - 'test/tool/generate_backup_artifacts_test.dart'
       - '.github/workflows/build-ir-master-index.yml'
   pull_request:
     branches:
@@ -17,6 +18,7 @@ on:
     paths:
       - 'tool/build_ir_master_index.dart'
       - 'tool/ir_master_index_sources.json'
+      - 'test/tool/generate_backup_artifacts_test.dart'
       - '.github/workflows/build-ir-master-index.yml'
 
 permissions:
@@ -25,7 +27,7 @@ permissions:
 jobs:
   build-index:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 150
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -39,8 +41,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Normalize index tool formatting
-        run: dart format tool/build_ir_master_index.dart
+      - name: Normalize generator formatting
+        run: dart format tool/build_ir_master_index.dart test/tool/generate_backup_artifacts_test.dart
 
       - name: Build file-level index
         env:
@@ -75,10 +77,58 @@ jobs:
           print(json.dumps(data['statistics'], indent=2))
           PY
 
+      - name: Generate app-compatible backup collection
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IR_MASTER_INDEX_PATH: build/ir_master_index/ir_master_index.json
+          IR_BACKUP_OUTPUT_PATH: build/ir_backup_collection
+        run: flutter test test/tool/generate_backup_artifacts_test.dart --reporter expanded
+
+      - name: Validate generated backups
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('build/ir_backup_collection')
+          manifest = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))
+          assert manifest['schema'] == 'irblaster.backup-collection'
+          assert manifest['generatedRemotes'] > 0
+          all_data = json.loads((root / 'irblaster_backup_ALL_REMOTES.json').read_text(encoding='utf-8'))
+          assert all_data['schema'] == 'irblaster.backup'
+          assert all_data['version'] == 1
+          assert len(all_data['remotes']) == manifest['generatedRemotes']
+          assert len(manifest['categories']) >= 5
+          for item in manifest['categories']:
+              data = json.loads((root / item['file']).read_text(encoding='utf-8'))
+              assert data['schema'] == 'irblaster.backup'
+              assert len(data['remotes']) == item['remoteCount']
+          print(json.dumps({
+              'generatedRemotes': manifest['generatedRemotes'],
+              'failedFiles': manifest['failedFiles'],
+              'categories': manifest['categories'],
+          }, indent=2))
+          PY
+
+      - name: Package backup collection
+        run: |
+          cd build
+          zip -9 -r irblaster_backup_collection.zip ir_backup_collection
+
       - name: Upload master index artifact
         uses: actions/upload-artifact@v4
         with:
           name: ir-master-index
           path: build/ir_master_index/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload app backup collection
+        uses: actions/upload-artifact@v4
+        with:
+          name: irblaster-backup-collection
+          path: |
+            build/irblaster_backup_collection.zip
+            build/ir_backup_collection/
           if-no-files-found: error
           retention-days: 30
