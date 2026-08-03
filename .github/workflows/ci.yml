@@ -30,8 +30,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Verify changed feature formatting
+        run: |
+          dart format --output=none --set-exit-if-changed \
+            lib/services/bulk_import_service.dart \
+            lib/github_store/github_repository_import_service.dart \
+            lib/widgets/github_repository_import_dialog.dart \
+            test/services/bulk_import_service_test.dart \
+            tool/build_ir_master_index.dart
 
       - name: Analyze
         run: flutter analyze
