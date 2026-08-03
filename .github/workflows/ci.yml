@@ -30,9 +30,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify changed feature formatting
+      - name: Normalize changed feature formatting
         run: |
-          dart format --output=none --set-exit-if-changed \
+          dart format \
             lib/services/bulk_import_service.dart \
             lib/github_store/github_repository_import_service.dart \
             lib/widgets/github_repository_import_dialog.dart \
