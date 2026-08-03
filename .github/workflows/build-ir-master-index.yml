@@ -40,16 +40,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: dart run tool/build_ir_master_index.dart --output build/ir_master_index
 
-      - name: Validate generated JSON
+      - name: Validate generated catalog
         run: |
           python - <<'PY'
+          import csv
           import json
           from pathlib import Path
-          p = Path('build/ir_master_index/ir_master_index.json')
-          data = json.loads(p.read_text(encoding='utf-8'))
+
+          root = Path('build/ir_master_index')
+          json_path = root / 'ir_master_index.json'
+          csv_path = root / 'ir_master_index.csv'
+          summary_path = root / 'ir_master_index_summary.md'
+
+          data = json.loads(json_path.read_text(encoding='utf-8'))
           assert data['schema'] == 'irblaster.master-index'
+          assert data['version'] == 1
           assert data['statistics']['fileCount'] > 0
           assert len(data['entries']) == data['statistics']['fileCount']
+          assert data['statistics']['sourceCount'] > 0
+          assert csv_path.stat().st_size > 0
+          assert summary_path.stat().st_size > 0
+
+          with csv_path.open(newline='', encoding='utf-8') as handle:
+            rows = list(csv.DictReader(handle))
+          assert len(rows) == data['statistics']['fileCount']
+
           print(json.dumps(data['statistics'], indent=2))
           PY
 
