@@ -10,6 +10,14 @@ on:
       - 'tool/build_ir_master_index.dart'
       - 'tool/ir_master_index_sources.json'
       - '.github/workflows/build-ir-backups.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'test/tool/generate_backup_artifacts_test.dart'
+      - 'tool/build_ir_master_index.dart'
+      - 'tool/ir_master_index_sources.json'
+      - '.github/workflows/build-ir-backups.yml'
 
 permissions:
   contents: read
