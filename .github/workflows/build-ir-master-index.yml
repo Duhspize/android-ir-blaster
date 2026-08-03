@@ -11,6 +11,13 @@ on:
       - 'tool/build_ir_master_index.dart'
       - 'tool/ir_master_index_sources.json'
       - '.github/workflows/build-ir-master-index.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'tool/build_ir_master_index.dart'
+      - 'tool/ir_master_index_sources.json'
+      - '.github/workflows/build-ir-master-index.yml'
 
 permissions:
   contents: read
