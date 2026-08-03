@@ -1,0 +1,62 @@
+name: Build IR Master Index
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 5 * * 1'
+  push:
+    branches:
+      - feature/bulk-repository-import
+    paths:
+      - 'tool/build_ir_master_index.dart'
+      - 'tool/ir_master_index_sources.json'
+      - '.github/workflows/build-ir-master-index.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify index tool formatting
+        run: dart format --output=none --set-exit-if-changed tool/build_ir_master_index.dart
+
+      - name: Build file-level index
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: dart run tool/build_ir_master_index.dart --output build/ir_master_index
+
+      - name: Validate generated JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('build/ir_master_index/ir_master_index.json')
+          data = json.loads(p.read_text(encoding='utf-8'))
+          assert data['schema'] == 'irblaster.master-index'
+          assert data['statistics']['fileCount'] > 0
+          assert len(data['entries']) == data['statistics']['fileCount']
+          print(json.dumps(data['statistics'], indent=2))
+          PY
+
+      - name: Upload master index artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ir-master-index
+          path: build/ir_master_index/
+          if-no-files-found: error
+          retention-days: 30
