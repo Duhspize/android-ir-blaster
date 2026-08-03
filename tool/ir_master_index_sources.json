@@ -1,0 +1,73 @@
+{
+  "schema": "irblaster.master-index.sources",
+  "version": 1,
+  "sources": [
+    {
+      "id": "flipper-irdb",
+      "label": "Lucaslhm Flipper-IRDB",
+      "owner": "Lucaslhm",
+      "repo": "Flipper-IRDB",
+      "ref": "main",
+      "rootPath": "",
+      "formats": ["flipper-ir"],
+      "license": "See repository license and per-file provenance",
+      "priority": 100
+    },
+    {
+      "id": "irplus-codes",
+      "label": "IRPlus Codes",
+      "owner": "irplus-remote",
+      "repo": "irplus-codes.github.io",
+      "ref": "master",
+      "rootPath": "",
+      "formats": ["irplus-xml"],
+      "license": "See repository",
+      "priority": 90
+    },
+    {
+      "id": "lirc-remotes-converted",
+      "label": "LIRC Remotes Converted",
+      "owner": "probonopd",
+      "repo": "lirc-remotes",
+      "ref": "master",
+      "rootPath": "",
+      "formats": ["lirc", "pronto", "xml"],
+      "license": "See repository and upstream LIRC source terms",
+      "priority": 80
+    },
+    {
+      "id": "radioxoma-infrared",
+      "label": "radioxoma infrared",
+      "owner": "radioxoma",
+      "repo": "infrared",
+      "ref": "master",
+      "rootPath": "",
+      "formats": ["lirc", "irplus-xml"],
+      "license": "See repository",
+      "priority": 70
+    },
+    {
+      "id": "the-flipper-files-infrared",
+      "label": "The Flipper Files Infrared",
+      "owner": "The-Flipper-Files",
+      "repo": "Infrared",
+      "ref": "main",
+      "rootPath": "",
+      "formats": ["flipper-ir"],
+      "license": "See repository and included upstream licenses",
+      "priority": 40,
+      "overlapHint": "Contains or references material overlapping Lucaslhm/Flipper-IRDB"
+    },
+    {
+      "id": "thomasleplus-flipperzero-ir",
+      "label": "thomasleplus flipperzero-ir",
+      "owner": "thomasleplus",
+      "repo": "flipperzero-ir",
+      "ref": "main",
+      "rootPath": "",
+      "formats": ["flipper-ir"],
+      "license": "Apache-2.0",
+      "priority": 30
+    }
+  ]
+}
